@@ -2,7 +2,6 @@
 import { onMounted, reactive, ref } from 'vue';
 
 const RELEASES_URL = 'https://github.com/rootobaika/ObaikaTracking/releases';
-const ASSET_BASE_URL = 'https://github.com';
 const GITHUB_LATEST_RELEASE_API = 'https://api.github.com/repos/rootobaika/ObaikaTracking/releases/latest';
 
 const downloads = ref([
@@ -14,17 +13,17 @@ const downloads = ref([
 ]);
 
 const releaseAssets = ref([
-  { name: 'app-universal-release-unsigned.apk', href: '/rootobaika/ObaikaTracking/releases/download/v0.1.2/app-universal-release-unsigned.apk' },
-  { name: 'Obaika.Tracker-0.1.2-1.x86_64.rpm', href: '/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker-0.1.2-1.x86_64.rpm' },
-  { name: 'Obaika.Tracker_0.1.2_aarch64.dmg', href: '/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_aarch64.dmg' },
-  { name: 'Obaika.Tracker_0.1.2_amd64.AppImage', href: '/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_amd64.AppImage' },
-  { name: 'Obaika.Tracker_0.1.2_amd64.deb', href: '/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_amd64.deb' },
-  { name: 'Obaika.Tracker_0.1.2_x64-setup.exe', href: '/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_x64-setup.exe' },
-  { name: 'Obaika.Tracker_0.1.2_x64_en-US.msi', href: '/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_x64_en-US.msi' },
-  { name: 'Source code (zip)', href: '/rootobaika/ObaikaTracking/archive/refs/tags/v0.1.2.zip' },
-  { name: 'Source code (tar.gz)', href: '/rootobaika/ObaikaTracking/archive/refs/tags/v0.1.2.tar.gz' },
+  { name: 'app-universal-release-unsigned.apk', href: 'https://github.com/rootobaika/ObaikaTracking/releases/download/v0.1.2/app-universal-release-unsigned.apk' },
+  { name: 'Obaika.Tracker-0.1.2-1.x86_64.rpm', href: 'https://github.com/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker-0.1.2-1.x86_64.rpm' },
+  { name: 'Obaika.Tracker_0.1.2_aarch64.dmg', href: 'https://github.com/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_aarch64.dmg' },
+  { name: 'Obaika.Tracker_0.1.2_amd64.AppImage', href: 'https://github.com/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_amd64.AppImage' },
+  { name: 'Obaika.Tracker_0.1.2_amd64.deb', href: 'https://github.com/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_amd64.deb' },
+  { name: 'Obaika.Tracker_0.1.2_x64-setup.exe', href: 'https://github.com/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_x64-setup.exe' },
+  { name: 'Obaika.Tracker_0.1.2_x64_en-US.msi', href: 'https://github.com/rootobaika/ObaikaTracking/releases/download/v0.1.2/Obaika.Tracker_0.1.2_x64_en-US.msi' },
+  { name: 'Source code (zip)', href: 'https://github.com/rootobaika/ObaikaTracking/archive/refs/tags/v0.1.2.zip' },
+  { name: 'Source code (tar.gz)', href: 'https://github.com/rootobaika/ObaikaTracking/archive/refs/tags/v0.1.2.tar.gz' },
 ]);
-const latestVersionLabel = ref('0.1.3');
+const latestVersionLabel = ref('...');
 
 const loadingByOs = reactive({});
 const progressByOs = reactive({});
@@ -50,7 +49,10 @@ function getAsset(assets, matcher) {
 async function hydrateDownloadsFromGithub() {
   try {
     const response = await fetch(GITHUB_LATEST_RELEASE_API, { headers: { Accept: 'application/vnd.github+json' } });
-    if (!response.ok) return;
+    if (!response.ok) {
+      if (latestVersionLabel.value === '...') latestVersionLabel.value = '0.1.2';
+      return;
+    }
 
     const release = await response.json();
     const assets = Array.isArray(release.assets) ? release.assets : [];
@@ -75,20 +77,20 @@ async function hydrateDownloadsFromGithub() {
 
     const assetLinks = assets.map((asset) => ({
       name: asset.name,
-      href: String(asset.browser_download_url || '').replace('https://github.com', ''),
+      href: asset.browser_download_url,
     }));
 
     const tag = String(release.tag_name || '').trim();
     if (tag) {
-      assetLinks.push({ name: 'Source code (zip)', href: `/rootobaika/ObaikaTracking/archive/refs/tags/${tag}.zip` });
-      assetLinks.push({ name: 'Source code (tar.gz)', href: `/rootobaika/ObaikaTracking/archive/refs/tags/${tag}.tar.gz` });
+      assetLinks.push({ name: 'Source code (zip)', href: `https://github.com/rootobaika/ObaikaTracking/archive/refs/tags/${tag}.zip` });
+      assetLinks.push({ name: 'Source code (tar.gz)', href: `https://github.com/rootobaika/ObaikaTracking/archive/refs/tags/${tag}.tar.gz` });
     }
 
     if (assetLinks.length) {
       releaseAssets.value = assetLinks;
     }
   } catch (_err) {
-    // Keep fallback links if GitHub API is unavailable.
+    if (latestVersionLabel.value === '...') latestVersionLabel.value = '0.1.2';
   }
 }
 
@@ -204,7 +206,7 @@ onMounted(() => {
       <div class="assets-grid">
         <article v-for="asset in releaseAssets" :key="asset.name" class="asset-item">
           <p class="asset-name">{{ asset.name }}</p>
-          <a :href="`${ASSET_BASE_URL}${asset.href}`" target="_blank" rel="noopener noreferrer">Скачать</a>
+          <a :href="asset.href" target="_blank" rel="noopener noreferrer">Скачать</a>
         </article>
       </div>
     </section>
