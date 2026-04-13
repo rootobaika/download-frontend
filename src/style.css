@@ -1,0 +1,18 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 700px at 8% -10%, rgba(255, 132, 77, 0.18), transparent 60%),
+    radial-gradient(1100px 680px at 100% 0%, rgba(72, 209, 183, 0.16), transparent 62%),
+    linear-gradient(160deg, #050a17 0%, #081127 50%, #040915 100%);
+  background-attachment: fixed;
+}
